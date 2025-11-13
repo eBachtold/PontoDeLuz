@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block conteudo %}
+
+<h3>Relatório de Vendas</h3>
+
+<form method="post" class="mb-4">
+    <label>Data início:</label>
+    <input type="date" class="form-control mb-2" name="inicio">
+
+    <label>Data fim:</label>
+    <input type="date" class="form-control mb-2" name="fim">
+
+    <button class="btn btn-primary">Gerar</button>
+</form>
+
+{% if vendas %}
+<table class="table table-bordered">
+    <tr>
+        <th>Data</th>
+        <th>Canal</th>
+        <th>Total</th>
+        <th>Comissão</th>
+        <th>Líquido</th>
+    </tr>
+
+    {% for v in vendas %}
+    <tr>
+        <td>{{ v.data_venda }}</td>
+        <td>{{ v.canal }}</td>
+        <td>R$ {{ v.total_venda }}</td>
+        <td>R$ {{ v.comissao_marketplace }}</td>
+        <td>R$ {{ v.valor_liquido }}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% endif %}
+
+{% endblock %}
