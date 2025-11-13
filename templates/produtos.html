@@ -1,13 +1,18 @@
 {% extends "base.html" %}
-{% block conteudo %}
 
+{% block content %}
 <h3>Produtos</h3>
 <a class="btn btn-primary mb-3" href="/produtos/novo">Novo Produto</a>
 
 <table class="table table-bordered">
     <tr>
-        <th>ID</th><th>Código</th><th>Nome</th><th>Categoria</th>
-        <th>Custo</th><th>Venda</th><th>Estoque</th>
+        <th>ID</th>
+        <th>Código</th>
+        <th>Nome</th>
+        <th>Categoria</th>
+        <th>Custo</th>
+        <th>Venda</th>
+        <th>Estoque</th>
     </tr>
 
     {% for p in produtos %}
@@ -22,5 +27,5 @@
     </tr>
     {% endfor %}
 </table>
-
 {% endblock %}
+
