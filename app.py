@@ -9,6 +9,7 @@ app = Flask(__name__)
 
 # Conexão com Supabase
 DATABASE_URL = os.getenv("DATABASE_URL")
+print("DEBUG DATABASE_URL =", repr(DATABASE_URL))  # <-- linha nova
 
 if not DATABASE_URL:
     raise RuntimeError("DATABASE_URL não definida nas variáveis de ambiente!")
