@@ -17,13 +17,11 @@ if not DATABASE_URL:
 engine = create_engine(DATABASE_URL)
 
 
-# @app.route("/")
-# def home():
-#    return render_template("home.html")
 
 @app.route("/")
 def home():
-    return "Aplicação no ar! 🚀"
+    return render_template("home.html")
+
 
 
 # ------------------------
