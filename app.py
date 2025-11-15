@@ -35,43 +35,36 @@ def home():
 
 @app.route("/produtos")
 def produtos():
+    codigo = request.args.get("codigo", "").strip()
+    categoria = request.args.get("categoria", "").strip()
+
+    query = "SELECT * FROM produtos"
+    conditions = []
+    params = {}
+
+    if codigo:
+        conditions.append("UPPER(codigo) LIKE UPPER(:codigo)")
+        params["codigo"] = f"%{codigo}%"
+
+    if categoria:
+        conditions.append("UPPER(categoria) LIKE UPPER(:categoria)")
+        params["categoria"] = f"%{categoria}%"
+
+    if conditions:
+        query += " WHERE " + " AND ".join(conditions)
+
+    query += " ORDER BY id"
+
     with engine.connect() as conn:
-        result = conn.execute(text("SELECT * FROM produtos ORDER BY id"))
+        result = conn.execute(text(query), params)
         produtos = result.fetchall()
-    return render_template("produtos.html", produtos=produtos)
 
-
-@app.route("/produtos/novo", methods=["GET", "POST"])
-def novo_produto():
-    if request.method == "POST":
-        codigo = request.form["codigo"]
-        nome = request.form["nome"]
-        categoria = request.form["categoria"]
-        preco_custo = request.form["preco_custo"]
-        preco_venda = request.form["preco_venda"]
-        estoque = request.form["estoque"]
-        observacoes = request.form["observacoes"]
-
-        sql = text("""
-            INSERT INTO produtos (codigo, nome, categoria, preco_custo, preco_venda, estoque_atual, observacoes)
-            VALUES (:codigo, :nome, :categoria, :preco_custo, :preco_venda, :estoque, :observacoes)
-        """)
-
-        with engine.connect() as conn:
-            conn.execute(sql, {
-                "codigo": codigo,
-                "nome": nome,
-                "categoria": categoria,
-                "preco_custo": preco_custo,
-                "preco_venda": preco_venda,
-                "estoque": estoque,
-                "observacoes": observacoes
-            })
-            conn.commit()
-
-        return redirect(url_for("produtos"))
-
-    return render_template("novo_produto.html")
+    return render_template(
+        "produtos.html",
+        produtos=produtos,
+        filtro_codigo=codigo,
+        filtro_categoria=categoria,
+    )
 
 # ------------------------
 # BUSCA DE PRODUTOS PARA VENDAS
