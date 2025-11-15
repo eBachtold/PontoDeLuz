@@ -3,6 +3,7 @@ from sqlalchemy import create_engine, text
 import os
 from dotenv import load_dotenv
 from decimal import Decimal
+from flask import flash
 
 load_dotenv()
 
@@ -140,7 +141,8 @@ def nova_venda():
 
             conn.commit()
 
-        return redirect(url_for("home"))
+        flash("Venda registrada com sucesso!", "success")
+        return redirect(url_for("nova_venda"))
 
     return render_template("nova_venda.html", produtos=produtos)
 
