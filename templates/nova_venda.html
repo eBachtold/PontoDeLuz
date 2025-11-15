@@ -26,10 +26,13 @@
   <div class="row mt-3">
     <!-- 🆕 Busca por referência -->
     <div class="col-md-4">
-      <label class="form-label">Referência / Código do produto</label>
-      <input class="form-control mb-2" name="produto_codigo" placeholder="Ex: COL-001">
-      <small class="text-muted">Se preencher a referência, não precisa escolher no campo ao lado.</small>
-    </div>
+  <label class="form-label">Referência / Código do produto</label>
+  <input class="form-control mb-2" id="produto_codigo" name="produto_codigo" placeholder="Ex: COL-001">
+  <small class="text-muted">Digite a referência para buscar automaticamente</small>
+
+  <!-- Área onde vamos mostrar o resultado -->
+  <div id="produto_info" class="mt-2 text-primary fw-bold"></div>
+</div>
 
     <!-- Select antigo continua funcionando -->
     <div class="col-md-4">
@@ -56,7 +59,53 @@
     </div>
   </div>
 
-  <button class="btn btn-success mt-3">Registrar venda</button>
+    <button type="submit" class="btn btn-success mt-3">Registrar venda</button>
+
 </form>
+
+<script>
+document.getElementById("produto_codigo").addEventListener("keyup", function() {
+    const codigo = this.value.trim();
+
+    if (codigo.length < 1) {
+        document.getElementById("produto_info").innerHTML = "";
+        return;
+    }
+
+    fetch(`/api/produto/${codigo}`)
+        .then(r => {
+            if (!r.ok) throw new Error();
+            return r.json();
+        })
+        .then(data => {
+            document.getElementById("produto_info").innerHTML =
+                `Produto: ${data.nome} <br> Preço: R$ ${data.preco.toFixed(2)} <br> Estoque: ${data.estoque}`;
+
+            // Preenche automaticamente o select oculto
+            const select = document.querySelector("select[name='produto_id']");
+            if (select) select.value = data.id;
+        })
+        .catch(() => {
+            document.getElementById("produto_info").innerHTML =
+                "<span class='text-danger'>Produto não encontrado</span>";
+        });
+});
+</script>
+
+<script>
+// Impede que ENTER envie o formulário
+document.addEventListener('keydown', function(event) {
+    if (event.key === "Enter") {
+        const tag = event.target.tagName.toLowerCase();
+        // Só permite enter no botão ou selects
+        if (tag !== "button" && tag !== "select") {
+            event.preventDefault();
+            return false;
+        }
+    }
+});
+</script>
+
+
 
 {% endblock %}

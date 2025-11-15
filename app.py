@@ -73,6 +73,29 @@ def novo_produto():
 
     return render_template("novo_produto.html")
 
+# ------------------------
+# BUSCA DE PRODUTOS PARA VENDAS
+# ------------------------
+
+@app.route("/api/produto/<codigo>")
+def api_get_produto(codigo):
+    with engine.connect() as conn:
+        row = conn.execute(
+            text("SELECT id, nome, preco_venda, estoque_atual FROM produtos WHERE codigo = :codigo"),
+            {"codigo": codigo}
+        ).fetchone()
+
+    if not row:
+        return {"status": "not_found"}, 404
+
+    return {
+        "status": "ok",
+        "id": row[0],
+        "nome": row[1],
+        "preco": float(row[2]),
+        "estoque": row[3]
+    }
+
 
 # ------------------------
 # VENDAS
