@@ -27,8 +27,6 @@ engine = create_engine(DATABASE_URL)
 def home():
     return render_template("home.html")
 
-
-
 # ------------------------
 # PRODUTOS
 # ------------------------
