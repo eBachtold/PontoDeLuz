@@ -81,12 +81,16 @@ def novo_produto():
 def api_get_produto(codigo):
     with engine.connect() as conn:
         row = conn.execute(
-            text("SELECT id, nome, preco_venda, estoque_atual FROM produtos WHERE codigo = :codigo"),
+            text("""
+                SELECT id, nome, preco_venda, estoque_atual
+                FROM produtos
+                WHERE TRIM(UPPER(codigo)) = TRIM(UPPER(:codigo))
+            """),
             {"codigo": codigo}
         ).fetchone()
 
     if not row:
-        return {"status": "not_found"}, 404
+        return {"status": "not_found"}
 
     return {
         "status": "ok",
