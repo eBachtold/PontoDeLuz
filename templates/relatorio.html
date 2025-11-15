@@ -42,9 +42,16 @@
                 <td>R$ {{ "%.2f"|format(v.valor_liquido) }}</td>
             </tr>
             {% endfor %}
+
+            <!-- 🧮 Linha de totais -->
+            <tr class="fw-bold">
+                <td colspan="2" class="text-end">Totais:</td>
+                <td>R$ {{ "%.2f"|format(total_vendas) }}</td>
+                <td>R$ {{ "%.2f"|format(total_comissao) }}</td>
+                <td>R$ {{ "%.2f"|format(total_liquido) }}</td>
+            </tr>
         </table>
 
-        <!-- Botão para baixar PDF -->
         <form method="post" action="{{ url_for('relatorio_pdf') }}" class="mt-3">
             <input type="hidden" name="inicio" value="{{ inicio }}">
             <input type="hidden" name="fim" value="{{ fim }}">

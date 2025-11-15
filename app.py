@@ -364,9 +364,10 @@ def nova_venda():
 @app.route("/relatorio", methods=["GET", "POST"])
 @login_required
 def relatorio():
-    vendas = None        # None = ainda não pesquisou
+    vendas = None
     inicio = ""
     fim = ""
+    total_vendas = total_comissao = total_liquido = None
 
     if request.method == "POST":
         inicio = request.form.get("inicio", "")
@@ -388,11 +389,19 @@ def relatorio():
                     "fim": fim
                 }).fetchall()
 
+            if vendas:
+                total_vendas = sum(Decimal(str(v.total_venda)) for v in vendas)
+                total_comissao = sum(Decimal(str(v.comissao_marketplace)) for v in vendas)
+                total_liquido = sum(Decimal(str(v.valor_liquido)) for v in vendas)
+
     return render_template(
         "relatorio.html",
         vendas=vendas,
         inicio=inicio,
-        fim=fim
+        fim=fim,
+        total_vendas=total_vendas,
+        total_comissao=total_comissao,
+        total_liquido=total_liquido,
     )
 
 # ------------------------
@@ -449,6 +458,19 @@ def relatorio_pdf():
                 p.showPage()
                 y = height - 50
                 p.setFont("Helvetica", 10)
+
+    total_vendas = sum(Decimal(str(v.total_venda)) for v in vendas) if vendas else Decimal("0")
+    total_comissao = ...
+    total_liquido = ...
+
+    # perto do fim do PDF
+    y -= 30
+    p.setFont("Helvetica-Bold", 11)
+    p.drawString(50, y, f"TOTAL VENDAS: R$ {float(total_vendas):.2f}")
+    y -= 15
+    p.drawString(50, y, f"TOTAL COMISSÕES: R$ {float(total_comissao):.2f}")
+    y -= 15
+    p.drawString(50, y, f"TOTAL LÍQUIDO: R$ {float(total_liquido):.2f}")
 
     p.showPage()
     p.save()
