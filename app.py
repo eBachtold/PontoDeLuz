@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for
 from sqlalchemy import create_engine, text
 import os
 from dotenv import load_dotenv
+from decimal import Decimal
 
 load_dotenv()
 
@@ -76,24 +77,35 @@ def novo_produto():
 @app.route("/vendas", methods=["GET", "POST"])
 def nova_venda():
     with engine.connect() as conn:
-        produtos = conn.execute(text("SELECT * FROM produtos ORDER BY nome")).fetchall()
+        produtos = conn.execute(
+            text("SELECT * FROM produtos ORDER BY nome")
+        ).fetchall()
 
     if request.method == "POST":
         cliente = request.form["cliente"]
         canal = request.form["canal"]
-        comissao = float(request.form["comissao"])
+
+        comissao_str = request.form.get("comissao", "").strip()
+        comissao = Decimal(comissao_str.replace(",", ".")) if comissao_str else Decimal("0")
+
         produto_id = int(request.form["produto_id"])
         quantidade = int(request.form["quantidade"])
 
         with engine.connect() as conn:
-            # preço e total
-            preco = conn.execute(text("SELECT preco_venda FROM produtos WHERE id = :id"),
-                                 {"id": produto_id}).fetchone()[0]
+            preco_row = conn.execute(
+                text("SELECT preco_venda FROM produtos WHERE id = :id"),
+                {"id": produto_id}
+            ).fetchone()
+
+            if not preco_row or preco_row[0] is None:
+                # aqui você pode tratar melhor se quiser
+                return redirect(url_for("nova_venda"))
+
+            preco = Decimal(str(preco_row[0]))
 
             total = preco * quantidade
             valor_liquido = total - comissao
 
-            # registrar venda
             venda_sql = text("""
                 INSERT INTO vendas (cliente_nome, canal, total_venda, comissao_marketplace, valor_liquido)
                 VALUES (:cliente, :canal, :total, :comissao, :valor_liquido)
@@ -108,7 +120,6 @@ def nova_venda():
                 "valor_liquido": valor_liquido
             }).fetchone()[0]
 
-            # registrar item
             item_sql = text("""
                 INSERT INTO itens_venda (venda_id, produto_id, quantidade, preco_unitario)
                 VALUES (:venda, :produto, :qtd, :preco)
@@ -121,9 +132,10 @@ def nova_venda():
                 "preco": preco
             })
 
-            # atualizar estoque
             conn.execute(text("""
-                UPDATE produtos SET estoque_atual = estoque_atual - :qtd WHERE id = :id
+                UPDATE produtos
+                SET estoque_atual = estoque_atual - :qtd
+                WHERE id = :id
             """), {"qtd": quantidade, "id": produto_id})
 
             conn.commit()
