@@ -69,21 +69,35 @@ def produtos():
 @app.route("/produtos/novo", methods=["GET", "POST"])
 def novo_produto():
     if request.method == "POST":
-        codigo = request.form["codigo"]
-        nome = request.form["nome"]
-        categoria = request.form["categoria"]
-        preco_custo = request.form["preco_custo"]
-        preco_venda = request.form["preco_venda"]
-        estoque = request.form["estoque"]
-        observacoes = request.form["observacoes"]
-        sql = text(""" INSERT INTO produtos (codigo, nome, categoria, preco_custo, preco_venda, estoque_atual, 
-        observacoes) VALUES (:codigo, :nome, :categoria, :preco_custo, :preco_venda, :estoque, :observacoes) """)
-        with engine.connect() as conn: conn.execute(sql, { "codigo": codigo, "nome": nome, "categoria":
-            categoria, "preco_custo": preco_custo, "preco_venda": preco_venda, "estoque": estoque, "observacoes":
-            observacoes })
-        conn.commit()
+        codigo = request.form.get("codigo", "").strip()
+        nome = request.form.get("nome", "").strip()
+        categoria = request.form.get("categoria", "").strip()
+        preco_custo = request.form.get("preco_custo", "0").replace(",", ".")
+        preco_venda = request.form.get("preco_venda", "0").replace(",", ".")
+        estoque = request.form.get("estoque", "0")
+        observacoes = request.form.get("observacoes", "").strip()
+
+        sql = text("""
+            INSERT INTO produtos (codigo, nome, categoria, preco_custo, preco_venda, estoque_atual, observacoes)
+            VALUES (:codigo, :nome, :categoria, :preco_custo, :preco_venda, :estoque, :observacoes)
+        """)
+
+        with engine.connect() as conn:
+            conn.execute(sql, {
+                "codigo": codigo,
+                "nome": nome,
+                "categoria": categoria,
+                "preco_custo": preco_custo,
+                "preco_venda": preco_venda,
+                "estoque": estoque,
+                "observacoes": observacoes
+            })
+            conn.commit()
+
         return redirect(url_for("produtos"))
-        return render_template("novo_produto.html")
+
+    # GET SEMPRE cai aqui:
+    return render_template("novo_produto.html")
 
 # ------------------------
 # BUSCA DE PRODUTOS PARA VENDAS
