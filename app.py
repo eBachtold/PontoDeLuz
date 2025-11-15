@@ -377,10 +377,21 @@ def relatorio():
             flash("Informe a data de início e fim.", "warning")
         else:
             sql = text("""
-                SELECT data_venda, canal, total_venda, comissao_marketplace, valor_liquido
-                FROM vendas
-                WHERE data_venda BETWEEN :inicio AND :fim
-                ORDER BY data_venda
+                SELECT
+                    v.data_venda,
+                    v.canal,
+                    v.cliente_nome,
+                    p.codigo        AS produto_codigo,
+                    p.nome          AS produto_nome,
+                    iv.quantidade   AS quantidade,
+                    v.total_venda,
+                    v.comissao_marketplace,
+                    v.valor_liquido
+                FROM vendas v
+                JOIN itens_venda iv ON iv.venda_id = v.id
+                JOIN produtos p     ON p.id = iv.produto_id
+                WHERE v.data_venda BETWEEN :inicio AND :fim
+                ORDER BY v.data_venda
             """)
 
             with engine.connect() as conn:
@@ -404,6 +415,7 @@ def relatorio():
         total_liquido=total_liquido,
     )
 
+
 # ------------------------
 # Gerar PDF
 # ------------------------
@@ -418,10 +430,21 @@ def relatorio_pdf():
         return redirect(url_for("relatorio"))
 
     sql = text("""
-        SELECT data_venda, canal, total_venda, comissao_marketplace, valor_liquido
-        FROM vendas
-        WHERE data_venda BETWEEN :inicio AND :fim
-        ORDER BY data_venda
+        SELECT
+            v.data_venda,
+            v.canal,
+            v.cliente_nome,
+            p.codigo        AS produto_codigo,
+            p.nome          AS produto_nome,
+            iv.quantidade   AS quantidade,
+            v.total_venda,
+            v.comissao_marketplace,
+            v.valor_liquido
+        FROM vendas v
+        JOIN itens_venda iv ON iv.venda_id = v.id
+        JOIN produtos p     ON p.id = iv.produto_id
+        WHERE v.data_venda BETWEEN :inicio AND :fim
+        ORDER BY v.data_venda
     """)
 
     with engine.connect() as conn:
@@ -430,17 +453,14 @@ def relatorio_pdf():
             "fim": fim
         }).fetchall()
 
-    # Calcula totais
+    # totais como já fizemos antes...
     if vendas:
         total_vendas = sum(Decimal(str(v.total_venda)) for v in vendas)
         total_comissao = sum(Decimal(str(v.comissao_marketplace)) for v in vendas)
         total_liquido = sum(Decimal(str(v.valor_liquido)) for v in vendas)
     else:
-        total_vendas = Decimal("0")
-        total_comissao = Decimal("0")
-        total_liquido = Decimal("0")
+        total_vendas = total_comissao = total_liquido = Decimal("0")
 
-    # Gerar PDF em memória
     buffer = BytesIO()
     p = canvas.Canvas(buffer, pagesize=A4)
     width, height = A4
@@ -450,26 +470,28 @@ def relatorio_pdf():
     p.drawString(50, y, f"Relatório de Vendas - {inicio} até {fim}")
     y -= 30
 
-    p.setFont("Helvetica", 10)
+    p.setFont("Helvetica", 9)
     if not vendas:
         p.drawString(50, y, "Nenhuma venda encontrada no período selecionado.")
     else:
         for v in vendas:
             linha = (
-                f"{v.data_venda} | {v.canal} | "
-                f"Total: R$ {float(v.total_venda):.2f} | "
-                f"Comissão: R$ {float(v.comissao_marketplace):.2f} | "
-                f"Líquido: R$ {float(v.valor_liquido):.2f}"
+                f"{v.data_venda} | {v.cliente_nome} | {v.canal} | "
+                f"{v.produto_codigo} - {v.produto_nome} | "
+                f"Qtd: {v.quantidade} | "
+                f"Tot: R$ {float(v.total_venda):.2f} | "
+                f"Com: R$ {float(v.comissao_marketplace):.2f} | "
+                f"Liq: R$ {float(v.valor_liquido):.2f}"
             )
-            p.drawString(50, y, linha)
-            y -= 15
+            p.drawString(30, y, linha)
+            y -= 12
 
-            if y < 50:
+            if y < 60:
                 p.showPage()
                 y = height - 50
-                p.setFont("Helvetica", 10)
+                p.setFont("Helvetica", 9)
 
-        # espaço antes dos totais
+        # Totais
         y -= 20
         if y < 80:
             p.showPage()
@@ -494,6 +516,7 @@ def relatorio_pdf():
         download_name=filename,
         mimetype="application/pdf"
     )
+
 
 
 # ------------------------

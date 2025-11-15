@@ -27,7 +27,11 @@
         <table class="table table-bordered table-striped">
             <tr>
                 <th>Data</th>
+                <th>Cliente</th>
                 <th>Canal</th>
+                <th>Ref. Produto</th>
+                <th>Produto</th>
+                <th>Qtd</th>
                 <th>Total</th>
                 <th>Comissão</th>
                 <th>Líquido</th>
@@ -36,16 +40,19 @@
             {% for v in vendas %}
             <tr>
                 <td>{{ v.data_venda }}</td>
+                <td>{{ v.cliente_nome }}</td>
                 <td>{{ v.canal }}</td>
+                <td>{{ v.produto_codigo }}</td>
+                <td>{{ v.produto_nome }}</td>
+                <td>{{ v.quantidade }}</td>
                 <td>R$ {{ "%.2f"|format(v.total_venda) }}</td>
                 <td>R$ {{ "%.2f"|format(v.comissao_marketplace) }}</td>
                 <td>R$ {{ "%.2f"|format(v.valor_liquido) }}</td>
             </tr>
             {% endfor %}
 
-            <!-- 🧮 Linha de totais -->
             <tr class="fw-bold">
-                <td colspan="2" class="text-end">Totais:</td>
+                <td colspan="6" class="text-end">Totais:</td>
                 <td>R$ {{ "%.2f"|format(total_vendas) }}</td>
                 <td>R$ {{ "%.2f"|format(total_comissao) }}</td>
                 <td>R$ {{ "%.2f"|format(total_liquido) }}</td>
@@ -61,5 +68,6 @@
         <p class="text-muted">Nenhuma venda encontrada no período selecionado.</p>
     {% endif %}
 {% endif %}
+
 
 {% endblock %}
