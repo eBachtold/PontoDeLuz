@@ -1,6 +1,16 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>Bem-vindo ao sistema Ponto de Luz!</h1>
-<p>Escolha uma opção no menu acima.</p>
+<div class="d-flex flex-column align-items-center justify-content-center text-center" style="min-height: 60vh;">
+    <img src="{{ url_for('static', filename='PontoDeLuzLogo.jpg') }}"
+         alt="Ponto de Luz"
+         style="height: 80px;">
+
+    <h1 class="mt-4" style="color: #2E2E2E;">
+        Bem-vindo ao sistema Ponto de Luz!
+    </h1>
+    <p class="lead mt-2" style="color: #2E2E2E;">
+        Escolha uma opção no menu acima para gerenciar seus produtos, vendas e relatórios.
+    </p>
+</div>
 {% endblock %}

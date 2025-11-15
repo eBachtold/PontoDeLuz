@@ -3,41 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <title>Sistema Ponto De Luz</title>
+
     <link rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+
+    <style>
+        body {
+            color: #2E2E2E;
+            background-color: #FFFFFF;
+        }
+
+        /* Navbar com as cores da marca */
+        .navbar-pontodeluz {
+            background-color: #F7F5EF;
+        }
+
+        .navbar-pontodeluz .navbar-brand,
+        .navbar-pontodeluz .nav-link {
+            color: #2E2E2E !important;
+            font-weight: 500;
+        }
+
+        .navbar-pontodeluz .nav-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Espaçamento entre itens do menu */
+        .navbar-pontodeluz .navbar-nav .nav-link {
+            margin-left: 1.5rem;
+        }
+    </style>
 </head>
 <body>
 
-{% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-    {% for category, message in messages %}
-      <div class="alert alert-{{ 'success' if category == 'success' else category }} alert-dismissible fade show mt-3" role="alert">
-        {{ message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-      </div>
-    {% endfor %}
-  {% endif %}
-{% endwith %}
+<nav class="navbar navbar-expand-lg navbar-pontodeluz">
+    <div class="container">
+        <!-- Logo + título -->
+        <a class="navbar-brand d-flex align-items-center" href="{{ url_for('home') if 'home' in globals() else '/' }}">
+            <img src="{{ url_for('static', filename='logo-pontodeluz.jpg') }}"
+                 alt="Ponto de Luz"
+                 class="me-2"
+                 style="height: 32px;">
+            <span>Sistema Ponto de Luz</span>
+        </a>
 
-<nav class="navbar navbar-expand navbar-dark bg-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="/">Inicio</a>
+        <!-- Botão para mobile (opcional) -->
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarPontoDeLuz"
+                aria-controls="navbarPontoDeLuz" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
 
-        <div>
-            <a class="nav-link d-inline text-white" href="/produtos">Produtos</a>
-            <a class="nav-link d-inline text-white" href="/vendas">Vendas</a>
-            <a class="nav-link d-inline text-white" href="/relatorio">Relatórios</a>
+        <!-- Itens do menu alinhados à direita -->
+        <div class="collapse navbar-collapse justify-content-end" id="navbarPontoDeLuz">
+            <ul class="navbar-nav mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('produtos') }}">Produtos</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('nova_venda') }}">Vendas</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('relatorio') }}">Relatórios</a>
+                </li>
+            </ul>
         </div>
     </div>
 </nav>
 
+<!-- mensagens flash abaixo do header -->
+<div class="container mt-3">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ 'success' if category == 'success' else category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+</div>
+
 <div class="container mt-4">
-    {% block content %}
-    {% endblock %}
+    {% block content %}{% endblock %}
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
 </body>
 </html>
-
