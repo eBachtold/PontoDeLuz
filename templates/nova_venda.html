@@ -1,31 +1,62 @@
 {% extends "base.html" %}
-
 {% block content %}
-<h3>Venda</h3>
+
+<h3>Nova Venda</h3>
 
 <form method="post">
 
-    <input class="form-control mb-2" name="cliente" placeholder="Cliente">
+  <div class="row">
+    <div class="col-md-6">
+      <label class="form-label">Cliente</label>
+      <input class="form-control mb-2" name="cliente" placeholder="Nome do cliente">
+    </div>
 
-    <select class="form-control mb-2" name="canal">
-        <option>Shopee</option>
-        <option>Mercado Livre</option>
-        <option>Venda Local</option>
-        <option>Instagram</option>
-    </select>
+    <div class="col-md-6">
+      <label class="form-label">Canal</label>
+      <select class="form-control mb-2" name="canal">
+        <option value="Shopee">Shopee</option>
+        <option value="Mercado Livre">Mercado Livre</option>
+        <option value="Whatsapp">Whatsapp</option>
+        <option value="Instagram">Instagram</option>
+        <option value="Outros">Outros</option>
+      </select>
+    </div>
+  </div>
 
-    <input class="form-control mb-2" name="comissao" placeholder="Comissão do Marketplace" type="number" step="0.01">
+  <div class="row mt-3">
+    <!-- 🆕 Busca por referência -->
+    <div class="col-md-4">
+      <label class="form-label">Referência / Código do produto</label>
+      <input class="form-control mb-2" name="produto_codigo" placeholder="Ex: COL-001">
+      <small class="text-muted">Se preencher a referência, não precisa escolher no campo ao lado.</small>
+    </div>
 
-    <select class="form-control mb-2" name="produto_id">
+    <!-- Select antigo continua funcionando -->
+    <div class="col-md-4">
+      <label class="form-label">Produto (opcional)</label>
+      <select class="form-control mb-2" name="produto_id">
+        <option value="">Selecione um produto</option>
         {% for p in produtos %}
-        <option value="{{ p.id }}">{{ p.nome }} (R$ {{ p.preco_venda }})</option>
+          <option value="{{ p.id }}">{{ p.codigo }} - {{ p.nome }}</option>
         {% endfor %}
-    </select>
+      </select>
+      <small class="text-muted">Use se não souber a referência.</small>
+    </div>
 
-    <input class="form-control mb-2" name="quantidade" placeholder="Quantidade" type="number">
+    <div class="col-md-4">
+      <label class="form-label">Quantidade</label>
+      <input class="form-control mb-2" name="quantidade" type="number" min="1" value="1">
+    </div>
+  </div>
 
-    <button class="btn btn-success">Registrar Venda</button>
+  <div class="row mt-3">
+    <div class="col-md-4">
+      <label class="form-label">Comissão do marketplace (R$)</label>
+      <input class="form-control mb-2" name="comissao" type="text" placeholder="Ex: 5,90">
+    </div>
+  </div>
+
+  <button class="btn btn-success mt-3">Registrar venda</button>
 </form>
 
 {% endblock %}
-

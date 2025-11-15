@@ -3,7 +3,7 @@ from sqlalchemy import create_engine, text
 import os
 from dotenv import load_dotenv
 from decimal import Decimal
-from flask import flash
+from flask import flash, redirect, url_for, render_template, request
 
 load_dotenv()
 
@@ -92,20 +92,38 @@ def nova_venda():
         comissao_str = request.form.get("comissao", "").strip()
         comissao = Decimal(comissao_str.replace(",", ".")) if comissao_str else Decimal("0")
 
-        produto_id = int(request.form["produto_id"])
-        quantidade = int(request.form["quantidade"])
+        # 🆕 campo de busca por referência
+        produto_codigo = request.form.get("produto_codigo", "").strip()
 
         with engine.connect() as conn:
-            preco_row = conn.execute(
-                text("SELECT preco_venda FROM produtos WHERE id = :id"),
-                {"id": produto_id}
-            ).fetchone()
+            if produto_codigo:
+                # Busca pelo código (referência)
+                produto_row = conn.execute(
+                    text("SELECT id, preco_venda, nome FROM produtos WHERE codigo = :codigo"),
+                    {"codigo": produto_codigo}
+                ).fetchone()
 
-            if not preco_row or preco_row[0] is None:
-                # aqui você pode tratar melhor se quiser
-                return redirect(url_for("nova_venda"))
+                if not produto_row:
+                    flash("Produto não encontrado para a referência informada.", "danger")
+                    return redirect(url_for("nova_venda"))
 
-            preco = Decimal(str(preco_row[0]))
+                produto_id = produto_row[0]
+                preco = Decimal(str(produto_row[1]))
+            else:
+                # Continua aceitando o select normal
+                produto_id = int(request.form["produto_id"])
+                produto_row = conn.execute(
+                    text("SELECT preco_venda FROM produtos WHERE id = :id"),
+                    {"id": produto_id}
+                ).fetchone()
+
+                if not produto_row or produto_row[0] is None:
+                    flash("Produto inválido.", "danger")
+                    return redirect(url_for("nova_venda"))
+
+                preco = Decimal(str(produto_row[0]))
+
+            quantidade = int(request.form["quantidade"])
 
             total = preco * quantidade
             valor_liquido = total - comissao
@@ -148,6 +166,7 @@ def nova_venda():
         return redirect(url_for("nova_venda"))
 
     return render_template("nova_venda.html", produtos=produtos)
+
 
 
 # ------------------------
