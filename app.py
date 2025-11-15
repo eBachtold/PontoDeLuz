@@ -1,10 +1,13 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import Flask, render_template, request, redirect, url_for, flash, session, send_file
 from sqlalchemy import create_engine, text
 import os
 from dotenv import load_dotenv
 from decimal import Decimal
-from flask import flash, redirect, url_for, render_template, request
 from functools import wraps
+from sqlalchemy import text
+from io import BytesIO
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A4
 
 load_dotenv()
 
@@ -361,26 +364,103 @@ def nova_venda():
 @app.route("/relatorio", methods=["GET", "POST"])
 @login_required
 def relatorio():
-    vendas = None
+    vendas = None        # None = ainda não pesquisou
+    inicio = ""
+    fim = ""
+
     if request.method == "POST":
-        data_inicio = request.form["inicio"]
-        data_fim = request.form["fim"]
+        inicio = request.form.get("inicio", "")
+        fim = request.form.get("fim", "")
 
-        sql = text("""
-            SELECT data_venda, canal, total_venda, comissao_marketplace, valor_liquido
-            FROM vendas
-            WHERE data_venda BETWEEN :inicio AND :fim
-            ORDER BY data_venda
-        """)
+        if not inicio or not fim:
+            flash("Informe a data de início e fim.", "warning")
+        else:
+            sql = text("""
+                SELECT data_venda, canal, total_venda, comissao_marketplace, valor_liquido
+                FROM vendas
+                WHERE data_venda BETWEEN :inicio AND :fim
+                ORDER BY data_venda
+            """)
 
-        with engine.connect() as conn:
-            vendas = conn.execute(sql, {
-                "inicio": data_inicio,
-                "fim": data_fim
-            }).fetchall()
+            with engine.connect() as conn:
+                vendas = conn.execute(sql, {
+                    "inicio": inicio,
+                    "fim": fim
+                }).fetchall()
 
-    return render_template("relatorio.html", vendas=vendas)
+    return render_template(
+        "relatorio.html",
+        vendas=vendas,
+        inicio=inicio,
+        fim=fim
+    )
 
+# ------------------------
+# Gerar PDF
+# ------------------------
+@app.route("/relatorio/pdf", methods=["POST"])
+@login_required
+def relatorio_pdf():
+    inicio = request.form.get("inicio", "")
+    fim = request.form.get("fim", "")
+
+    if not inicio or not fim:
+        flash("Informe a data de início e fim para gerar o PDF.", "warning")
+        return redirect(url_for("relatorio"))
+
+    sql = text("""
+        SELECT data_venda, canal, total_venda, comissao_marketplace, valor_liquido
+        FROM vendas
+        WHERE data_venda BETWEEN :inicio AND :fim
+        ORDER BY data_venda
+    """)
+
+    with engine.connect() as conn:
+        vendas = conn.execute(sql, {
+            "inicio": inicio,
+            "fim": fim
+        }).fetchall()
+
+    # Gerar PDF em memória
+    buffer = BytesIO()
+    p = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
+
+    y = height - 50
+    p.setFont("Helvetica-Bold", 14)
+    p.drawString(50, y, f"Relatório de Vendas - {inicio} até {fim}")
+    y -= 30
+
+    p.setFont("Helvetica", 10)
+    if not vendas:
+        p.drawString(50, y, "Nenhuma venda encontrada no período selecionado.")
+    else:
+        for v in vendas:
+            linha = (
+                f"{v.data_venda} | {v.canal} | "
+                f"Total: R$ {float(v.total_venda):.2f} | "
+                f"Comissão: R$ {float(v.comissao_marketplace):.2f} | "
+                f"Líquido: R$ {float(v.valor_liquido):.2f}"
+            )
+            p.drawString(50, y, linha)
+            y -= 15
+
+            if y < 50:  # nova página se chegar no fim
+                p.showPage()
+                y = height - 50
+                p.setFont("Helvetica", 10)
+
+    p.showPage()
+    p.save()
+    buffer.seek(0)
+
+    filename = f"relatorio_{inicio}_a_{fim}.pdf"
+    return send_file(
+        buffer,
+        as_attachment=True,
+        download_name=filename,
+        mimetype="application/pdf"
+    )
 
 # ------------------------
 # Rodar localmente

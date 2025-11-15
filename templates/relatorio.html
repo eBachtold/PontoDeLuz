@@ -4,35 +4,55 @@
 <h3>Relatório de Vendas</h3>
 
 <form method="post" class="mb-4">
-    <label>Data início:</label>
-    <input type="date" class="form-control mb-2" name="inicio">
+    <div class="row">
+        <div class="col-md-4">
+            <label class="form-label">Data início:</label>
+            <input type="date" class="form-control mb-2" name="inicio" value="{{ inicio }}">
+        </div>
 
-    <label>Data fim:</label>
-    <input type="date" class="form-control mb-2" name="fim">
+        <div class="col-md-4">
+            <label class="form-label">Data fim:</label>
+            <input type="date" class="form-control mb-2" name="fim" value="{{ fim }}">
+        </div>
 
-    <button class="btn btn-primary">Gerar</button>
+        <div class="col-md-4 d-flex align-items-end">
+            <button class="btn btn-primary w-100">Gerar relatório</button>
+        </div>
+    </div>
 </form>
 
-{% if vendas %}
-<table class="table table-bordered">
-    <tr>
-        <th>Data</th>
-        <th>Canal</th>
-        <th>Total</th>
-        <th>Comissão</th>
-        <th>Líquido</th>
-    </tr>
+{% if vendas is not none %}
+    {% if vendas %}
+        <h5>Resultados</h5>
+        <table class="table table-bordered table-striped">
+            <tr>
+                <th>Data</th>
+                <th>Canal</th>
+                <th>Total</th>
+                <th>Comissão</th>
+                <th>Líquido</th>
+            </tr>
 
-    {% for v in vendas %}
-    <tr>
-        <td>{{ v.data_venda }}</td>
-        <td>{{ v.canal }}</td>
-        <td>R$ {{ v.total_venda }}</td>
-        <td>R$ {{ v.comissao_marketplace }}</td>
-        <td>R$ {{ v.valor_liquido }}</td>
-    </tr>
-    {% endfor %}
-</table>
+            {% for v in vendas %}
+            <tr>
+                <td>{{ v.data_venda }}</td>
+                <td>{{ v.canal }}</td>
+                <td>R$ {{ "%.2f"|format(v.total_venda) }}</td>
+                <td>R$ {{ "%.2f"|format(v.comissao_marketplace) }}</td>
+                <td>R$ {{ "%.2f"|format(v.valor_liquido) }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+
+        <!-- Botão para baixar PDF -->
+        <form method="post" action="{{ url_for('relatorio_pdf') }}" class="mt-3">
+            <input type="hidden" name="inicio" value="{{ inicio }}">
+            <input type="hidden" name="fim" value="{{ fim }}">
+            <button class="btn btn-outline-secondary">Download PDF</button>
+        </form>
+    {% else %}
+        <p class="text-muted">Nenhuma venda encontrada no período selecionado.</p>
+    {% endif %}
 {% endif %}
 
 {% endblock %}
