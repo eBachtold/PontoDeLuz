@@ -430,6 +430,16 @@ def relatorio_pdf():
             "fim": fim
         }).fetchall()
 
+    # Calcula totais
+    if vendas:
+        total_vendas = sum(Decimal(str(v.total_venda)) for v in vendas)
+        total_comissao = sum(Decimal(str(v.comissao_marketplace)) for v in vendas)
+        total_liquido = sum(Decimal(str(v.valor_liquido)) for v in vendas)
+    else:
+        total_vendas = Decimal("0")
+        total_comissao = Decimal("0")
+        total_liquido = Decimal("0")
+
     # Gerar PDF em memória
     buffer = BytesIO()
     p = canvas.Canvas(buffer, pagesize=A4)
@@ -454,23 +464,24 @@ def relatorio_pdf():
             p.drawString(50, y, linha)
             y -= 15
 
-            if y < 50:  # nova página se chegar no fim
+            if y < 50:
                 p.showPage()
                 y = height - 50
                 p.setFont("Helvetica", 10)
 
-    total_vendas = sum(Decimal(str(v.total_venda)) for v in vendas) if vendas else Decimal("0")
-    total_comissao = ...
-    total_liquido = ...
+        # espaço antes dos totais
+        y -= 20
+        if y < 80:
+            p.showPage()
+            y = height - 50
+            p.setFont("Helvetica", 10)
 
-    # perto do fim do PDF
-    y -= 30
-    p.setFont("Helvetica-Bold", 11)
-    p.drawString(50, y, f"TOTAL VENDAS: R$ {float(total_vendas):.2f}")
-    y -= 15
-    p.drawString(50, y, f"TOTAL COMISSÕES: R$ {float(total_comissao):.2f}")
-    y -= 15
-    p.drawString(50, y, f"TOTAL LÍQUIDO: R$ {float(total_liquido):.2f}")
+        p.setFont("Helvetica-Bold", 11)
+        p.drawString(50, y, f"TOTAL VENDAS: R$ {float(total_vendas):.2f}")
+        y -= 15
+        p.drawString(50, y, f"TOTAL COMISSÕES: R$ {float(total_comissao):.2f}")
+        y -= 15
+        p.drawString(50, y, f"TOTAL LÍQUIDO: R$ {float(total_liquido):.2f}")
 
     p.showPage()
     p.save()
@@ -483,6 +494,7 @@ def relatorio_pdf():
         download_name=filename,
         mimetype="application/pdf"
     )
+
 
 # ------------------------
 # Rodar localmente
