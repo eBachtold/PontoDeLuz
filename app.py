@@ -1,16 +1,23 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, flash, session
 from sqlalchemy import create_engine, text
 import os
 from dotenv import load_dotenv
 from decimal import Decimal
 from flask import flash, redirect, url_for, render_template, request
+from functools import wraps
 
 load_dotenv()
+
+
 
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "fallback-chave-local") #Chave para usar na rede
 #app.secret_key = "chave-muito-secreta-e-grande-123"  # chave para usar localmente para testes
+
+# Usuário 'fixo' só pra começar (pode pegar de env depois)
+app.config["LOGIN_USER"] = "admin"
+app.config["LOGIN_PASS"] = "1234"
 
 # Conexão com Supabase
 DATABASE_URL = os.getenv("DATABASE_URL")
@@ -28,10 +35,51 @@ def home():
     return render_template("home.html")
 
 # ------------------------
+# DECORADOR
+# ------------------------
+def login_required(view_func):
+    @wraps(view_func)
+    def wrapper(*args, **kwargs):
+        if not session.get("usuario_logado"):
+            flash("Faça login para acessar o sistema.", "warning")
+            return redirect(url_for("login"))
+        return view_func(*args, **kwargs)
+    return wrapper
+
+# ------------------------
+# LOGIN E LOGOUT
+# ------------------------
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        usuario = request.form.get("usuario", "").strip()
+        senha = request.form.get("senha", "").strip()
+
+        if usuario == app.config["LOGIN_USER"] and senha == app.config["LOGIN_PASS"]:
+            session["usuario_logado"] = usuario
+            flash("Login realizado com sucesso!", "success")
+            return redirect(url_for("home"))
+        else:
+            flash("Usuário ou senha inválidos.", "danger")
+
+    return render_template("login.html")
+
+
+@app.route("/logout")
+def logout():
+    session.pop("usuario_logado", None)
+    flash("Você saiu do sistema.", "info")
+    return redirect(url_for("login"))
+
+
+
+# ------------------------
 # PRODUTOS
 # ------------------------
 
 @app.route("/produtos")
+@login_required
 def produtos():
     codigo = request.args.get("codigo", "").strip()
     categoria = request.args.get("categoria", "").strip()
@@ -65,6 +113,7 @@ def produtos():
     )
 
 @app.route("/produtos/novo", methods=["GET", "POST"])
+@login_required
 def novo_produto():
     if request.method == "POST":
         codigo = request.form.get("codigo", "").strip()
@@ -102,6 +151,7 @@ def novo_produto():
 # ------------------------
 
 @app.route("/produtos/<int:produto_id>/editar", methods=["GET", "POST"])
+@login_required
 def editar_produto(produto_id):
     if request.method == "POST":
         codigo = request.form.get("codigo", "").strip()
@@ -160,6 +210,7 @@ from sqlalchemy.exc import IntegrityError
 # ------------------------
 
 @app.route("/produtos/<int:produto_id>/excluir", methods=["POST"])
+@login_required
 def excluir_produto(produto_id):
     try:
         with engine.connect() as conn:
@@ -182,6 +233,7 @@ def excluir_produto(produto_id):
 # ------------------------
 
 @app.route("/api/produto/<codigo>")
+@login_required
 def api_get_produto(codigo):
     with engine.connect() as conn:
         row = conn.execute(
@@ -210,6 +262,7 @@ def api_get_produto(codigo):
 # ------------------------
 
 @app.route("/vendas", methods=["GET", "POST"])
+@login_required
 def nova_venda():
     with engine.connect() as conn:
         produtos = conn.execute(
@@ -305,6 +358,7 @@ def nova_venda():
 # ------------------------
 
 @app.route("/relatorio", methods=["GET", "POST"])
+@login_required
 def relatorio():
     vendas = None
     if request.method == "POST":

@@ -38,12 +38,11 @@
 
 <nav class="navbar navbar-expand-lg navbar-pontodeluz">
     <div class="container">
-        <!-- Logo + título -->
         <a class="navbar-brand d-flex align-items-center" href="{{ url_for('home') }}">
-            <img src="{{ url_for('static', filename='pontodeluz.png') }}"
+            <img src="{{ url_for('static', filename='logo-pontodeluz.png') }}"
                  alt="Ponto de Luz"
                  class="me-2"
-                 style="height: 42px;">
+                 style="height: 32px;">
             <span>Ponto de Luz</span>
         </a>
 
@@ -54,19 +53,29 @@
 
         <div class="collapse navbar-collapse justify-content-end" id="navbarPontoDeLuz">
             <ul class="navbar-nav mb-2 mb-lg-0">
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('produtos') }}">Produtos</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('nova_venda') }}">Vendas</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('relatorio') }}">Relatórios</a>
-                </li>
+                {% if session.get('usuario_logado') %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('produtos') }}">Produtos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('nova_venda') }}">Vendas</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('relatorio') }}">Relatórios</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('logout') }}">Sair</a>
+                    </li>
+                {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('login') }}">Login</a>
+                    </li>
+                {% endif %}
             </ul>
         </div>
     </div>
 </nav>
+
 
 <!-- mensagens flash abaixo do header -->
 <div class="container mt-3">
