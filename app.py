@@ -7,7 +7,10 @@ from flask import flash
 
 load_dotenv()
 
+
 app = Flask(__name__)
+app.secret_key = os.environ.get("SECRET_KEY", "fallback-chave-local") #Chave para usar na rede
+#app.secret_key = "chave-muito-secreta-e-grande-123"  # chave para usar localmente para testes
 
 # Conexão com Supabase
 DATABASE_URL = os.getenv("DATABASE_URL")
