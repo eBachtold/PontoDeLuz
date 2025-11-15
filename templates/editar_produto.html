@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h3>Editar Produto</h3>
+
+<form method="post">
+    <div class="mb-2">
+        <label class="form-label">Código</label>
+        <input class="form-control" name="codigo" value="{{ produto.codigo }}">
+    </div>
+
+    <div class="mb-2">
+        <label class="form-label">Nome</label>
+        <input class="form-control" name="nome" value="{{ produto.nome }}">
+    </div>
+
+    <div class="mb-2">
+        <label class="form-label">Categoria</label>
+        <input class="form-control" name="categoria" value="{{ produto.categoria }}">
+    </div>
+
+    <div class="mb-2">
+        <label class="form-label">Preço de Custo</label>
+        <input class="form-control" name="preco_custo" type="text"
+               value="{{ produto.preco_custo }}">
+    </div>
+
+    <div class="mb-2">
+        <label class="form-label">Preço de Venda</label>
+        <input class="form-control" name="preco_venda" type="text"
+               value="{{ produto.preco_venda }}">
+    </div>
+
+    <div class="mb-2">
+        <label class="form-label">Estoque Atual</label>
+        <input class="form-control" name="estoque" type="number"
+               value="{{ produto.estoque_atual }}">
+    </div>
+
+    <div class="mb-2">
+        <label class="form-label">Observações</label>
+        <textarea class="form-control" name="observacoes">{{ produto.observacoes }}</textarea>
+    </div>
+
+    <button class="btn btn-success">Salvar alterações</button>
+    <a href="{{ url_for('produtos') }}" class="btn btn-secondary ms-2">Voltar</a>
+</form>
+{% endblock %}

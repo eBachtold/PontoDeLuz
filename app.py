@@ -100,6 +100,86 @@ def novo_produto():
     return render_template("novo_produto.html")
 
 # ------------------------
+# PRODUTOS EDIÇÃO
+# ------------------------
+
+@app.route("/produtos/<int:produto_id>/editar", methods=["GET", "POST"])
+def editar_produto(produto_id):
+    if request.method == "POST":
+        codigo = request.form.get("codigo", "").strip()
+        nome = request.form.get("nome", "").strip()
+        categoria = request.form.get("categoria", "").strip()
+        preco_custo = request.form.get("preco_custo", "0").replace(",", ".")
+        preco_venda = request.form.get("preco_venda", "0").replace(",", ".")
+        estoque = request.form.get("estoque", "0")
+        observacoes = request.form.get("observacoes", "").strip()
+
+        sql = text("""
+            UPDATE produtos
+            SET codigo = :codigo,
+                nome = :nome,
+                categoria = :categoria,
+                preco_custo = :preco_custo,
+                preco_venda = :preco_venda,
+                estoque_atual = :estoque,
+                observacoes = :observacoes
+            WHERE id = :id
+        """)
+
+        with engine.connect() as conn:
+            conn.execute(sql, {
+                "codigo": codigo,
+                "nome": nome,
+                "categoria": categoria,
+                "preco_custo": preco_custo,
+                "preco_venda": preco_venda,
+                "estoque": estoque,
+                "observacoes": observacoes,
+                "id": produto_id
+            })
+            conn.commit()
+
+        flash("Produto atualizado com sucesso!", "success")
+        return redirect(url_for("produtos"))
+
+    # GET: buscar dados do produto para preencher o formulário
+    with engine.connect() as conn:
+        row = conn.execute(
+            text("SELECT * FROM produtos WHERE id = :id"),
+            {"id": produto_id}
+        ).fetchone()
+
+    if not row:
+        flash("Produto não encontrado.", "danger")
+        return redirect(url_for("produtos"))
+
+    return render_template("editar_produto.html", produto=row)
+
+from sqlalchemy.exc import IntegrityError
+
+# ------------------------
+# EXCLUIR PRODUTO
+# ------------------------
+
+@app.route("/produtos/<int:produto_id>/excluir", methods=["POST"])
+def excluir_produto(produto_id):
+    try:
+        with engine.connect() as conn:
+            conn.execute(
+                text("DELETE FROM produtos WHERE id = :id"),
+                {"id": produto_id}
+            )
+            conn.commit()
+
+        flash("Produto excluído com sucesso!", "success")
+    except IntegrityError:
+        # Se o produto estiver vinculado a vendas, por exemplo
+        flash("Não foi possível excluir: produto vinculado a vendas.", "danger")
+
+    return redirect(url_for("produtos"))
+
+
+# ------------------------
 # BUSCA DE PRODUTOS PARA VENDAS
 # ------------------------
 
