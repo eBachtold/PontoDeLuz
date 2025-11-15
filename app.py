@@ -16,8 +16,15 @@ app.secret_key = os.environ.get("SECRET_KEY", "fallback-chave-local") #Chave par
 #app.secret_key = "chave-muito-secreta-e-grande-123"  # chave para usar localmente para testes
 
 # Usuário 'fixo' só pra começar (pode pegar de env depois)
-app.config["LOGIN_USER"] = "admin"
+app.config["LOGIN_USER"] = "Eduardo"
 app.config["LOGIN_PASS"] = "1234"
+app.config["LOGIN_USER"] = "Manu"
+app.config["LOGIN_PASS"] = "1234"
+app.config["LOGIN_USER"] = "Saimon"
+app.config["LOGIN_PASS"] = "1234"
+app.config["LOGIN_USER"] = "Helena"
+app.config["LOGIN_PASS"] = "1234"
+
 
 # Conexão com Supabase
 DATABASE_URL = os.getenv("DATABASE_URL")
