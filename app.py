@@ -73,7 +73,7 @@ def novo_produto():
 # VENDAS
 # ------------------------
 
-@app.route("/vendas/nova", methods=["GET", "POST"])
+@app.route("/vendas", methods=["GET", "POST"])
 def nova_venda():
     with engine.connect() as conn:
         produtos = conn.execute(text("SELECT * FROM produtos ORDER BY nome")).fetchall()
